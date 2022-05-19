@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html >
+<!--From https://codepen.io/frytyler/pen/EGdtg-->
+<head>
+  <meta charset="UTF-8">
+  <title>ML API</title>
+  <link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Arimo' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Hind:300' rel='stylesheet' type='text/css'>
+  <link href='https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <script
+  src="https://code.jquery.com/jquery-3.6.0.min.js"
+  integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+  crossorigin="anonymous"></script>
+  <script src="js/my_script.js?v=<?=filemtime('js/my_script.js')?>"></script>
+</head>
+
+<body>
+ <div class="ocrform">
+	<h1>Nôm OCR</h1>
+    <img style="margin: auto;" id="output" width="200" src="" onerror="this.style.display='none'">
+    <p><label class="button1" for="file">Upload Image</label></p>
+
+    <script>
+      $(document).ready(function (e) {
+        $('#form').on('submit',(function(e) {
+            e.preventDefault();
+            console.log("uploading")
+            var formData = new FormData(this);
+            let els = document.getElementsByClassName("result-img");
+            if (els?.length == 2 ) {
+              els[0].src = "";
+              els[1].src = "";
+            }
+            $.ajax({
+              type: "POST",
+              url: $(this).attr('action'),
+              data:formData,
+              cache:false,
+              contentType: false,
+              processData: false,
+              success: function( result ) {
+              let imgObj= JSON.parse(result);
+              console.log(imgObj)
+              let els = [...document.getElementsByClassName("result-img")];
+              //els.forEach(i => i.src=result)
+              if(els.length==2){
+                els[0].src= imgObj.dec;
+                els[1].src= imgObj.reg;
+                }
+              }
+            });
+        }));
+      });
+
+
+    var loadFile = function(event) {
+      console.log("uploading-------------")
+      var image = document.getElementById('output');
+      image.src = URL.createObjectURL(event.target.files[0]);
+      image.style.display = 'block';
+    };
+
+    const handleSubmitPicture = () => {
+      $.ajax({
+        method: "GET",
+        url: "/image",
+        success: function( result ) {
+          let imgObjs= JSON.parse(result);
+          console.log(imgObj)
+          let els = [...document.getElementsByClassName("result-img")];
+          els.forEach(i => i.src=result)
+          console.log(els,els.length)
+          if(els.length==2){
+            els[0].source= imgObjs.dec;
+            els[1].source= imgObjs.reg;
+          }
+        }
+      });
+    }
+    </script>
+
+     <!-- Main Input For Receiving Query to our ML -->
+    <form id="form" action="/"  enctype=multipart/form-data>
+      <input type="file" accept="image/*" name="file" id="file" onchange="loadFile(event)" style="display: none;">
+      <button type="submit" class="button2">Process</button>
+
+    </form>
+
+
+    <script>
+      function copyFunction() {
+        /* Get the text field */
+        var copyText = document.getElementById("predictText");
+
+        /* Select the text field */
+        copyText.select();
+        copyText.setSelectionRange(0, 99999); /* For mobile devices */
+
+        /* Copy the text inside the text field */
+        navigator.clipboard.writeText(copyText.value);
+
+        var tooltip = document.getElementById("myTooltip");
+        tooltip.innerHTML = "Copied!";
+      }
+
+      function outFunc() {
+        var tooltip = document.getElementById("myTooltip");
+        tooltip.innerHTML = "Copy to clipboard";
+      }
+    </script>
+
+    <br>
+
+    <p><label>Text from the image:</label></p>
+    <div style="width: 100%;">
+      <!-- <textarea class="textarea_predict NomFont" name="predictText" id="predictText" cols="20" rows="5" readonly>{{ prediction_text }}</textarea> -->
+      <img  class="result-img" width="300" src="" alt=""/>
+      <img  class="result-img" width="300" src="" alt=""/>
+      <span class="tooltip">
+        <button class="button_predict" onclick="copyFunction()" onmouseout="outFunc()">
+          <span class="tooltiptext" id="myTooltip">Copy to clipboard</span>
+          <i class="material-icons">content_copy</i>
+        </button>
+      </span>
+    </div>
+
+ </div>
+
+
+</body>
+</html>
